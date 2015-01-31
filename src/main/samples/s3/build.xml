@@ -40,6 +40,22 @@
 	<!-- Import setup and unzip targets -->
 	<import file="../shared-build.xml"/>
 
+
+   <!-- <target name="compile">
+        <mkdir dir="${basedir}/build"/>
+        <javac srcdir="${basedir}" destdir="${basedir}/build" classpathref="samples.classpath" />
+    </target> -->
+
+    <target name="jar">
+        <mkdir dir="${basedir}/build/jar"/>
+        <jar destfile="${basedir}/build/jar/kinesisToS3.jar" basedir="${basedir}/build">
+            <manifest>
+                <attribute name="Main-Class" value="samples.s3.S3Executor"/>
+            </manifest>
+            <exclude name="${basedir}/build/jar/kinesisToS3.jar"/>
+        </jar>
+    </target>
+
     <target name="run">
         <mkdir dir="${basedir}/build"/>
         <javac srcdir="${basedir}" destdir="${basedir}/build" classpathref="samples.classpath" />

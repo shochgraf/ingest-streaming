@@ -14,7 +14,7 @@
  */
 package samples.s3;
 
-import samples.KinesisMessageModel;
+//import samples.KinesisMessageModel;
 
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
 import com.amazonaws.services.kinesis.connectors.impl.AllPassFilter;
@@ -26,6 +26,10 @@ import com.amazonaws.services.kinesis.connectors.interfaces.IFilter;
 import com.amazonaws.services.kinesis.connectors.interfaces.IKinesisConnectorPipeline;
 import com.amazonaws.services.kinesis.connectors.interfaces.ITransformer;
 import com.amazonaws.services.kinesis.connectors.s3.S3Emitter;
+/*Added*/
+import com.amazonaws.services.kinesis.model.Record;
+/*Added*/
+import java.io.IOException;
 
 /**
  * The Pipeline used by the Amazon S3 sample. Processes KinesisMessageModel records in JSON String
@@ -37,26 +41,38 @@ import com.amazonaws.services.kinesis.connectors.s3.S3Emitter;
  * <li>AllPassFilter</li>
  * </ul>
  */
-public class S3Pipeline implements IKinesisConnectorPipeline<KinesisMessageModel, byte[]> {
 
+
+public class S3Pipeline implements IKinesisConnectorPipeline<byte[],byte[]> {
     @Override
     public IEmitter<byte[]> getEmitter(KinesisConnectorConfiguration configuration) {
         return new S3Emitter(configuration);
     }
 
     @Override
-    public IBuffer<KinesisMessageModel> getBuffer(KinesisConnectorConfiguration configuration) {
-        return new BasicMemoryBuffer<KinesisMessageModel>(configuration);
+    public IBuffer<byte[]> getBuffer(KinesisConnectorConfiguration configuration) {
+        return new BasicMemoryBuffer<>(configuration);
     }
 
     @Override
-    public ITransformer<KinesisMessageModel, byte[]> getTransformer(KinesisConnectorConfiguration configuration) {
-        return new JsonToByteArrayTransformer<KinesisMessageModel>(KinesisMessageModel.class);
+    public ITransformer<byte[], byte[]> getTransformer(KinesisConnectorConfiguration configuration) {
+        return new ByteArrayNoopTransformer();
     }
 
     @Override
-    public IFilter<KinesisMessageModel> getFilter(KinesisConnectorConfiguration configuration) {
-        return new AllPassFilter<KinesisMessageModel>();
+    public IFilter<byte[]> getFilter(KinesisConnectorConfiguration configuration) {
+        return new AllPassFilter<>();
     }
 
+    private static class ByteArrayNoopTransformer implements ITransformer<byte[], byte[]> {
+        @Override
+        public byte[] toClass(Record record) throws IOException {
+            return record.getData().array();
+        }
+
+        @Override
+        public byte[] fromClass(byte[] record) throws IOException {
+            return record;
+        }
+    }
 }
